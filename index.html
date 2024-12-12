@@ -1,0 +1,108 @@
+// app.js
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+let firstResponder = null;
+let participants = {};
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Handle nickname submission
+  socket.on('set_nickname', (nickname) => {
+    participants[socket.id] = nickname;
+    console.log(`Nickname set: ${nickname}`);
+  });
+
+  // Handle button press
+  socket.on('buzz', () => {
+    if (!firstResponder) {
+      firstResponder = participants[socket.id] || 'Unknown';
+      io.emit('lock_buzzers', firstResponder);
+      console.log(`First responder: ${firstResponder}`);
+    }
+  });
+
+  // Handle reset from admin
+  socket.on('reset', () => {
+    firstResponder = null;
+    io.emit('reset_buzzers');
+    console.log('Buzzers reset');
+  });
+
+  // Disconnect
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+    delete participants[socket.id];
+  });
+});
+
+server.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000');
+});
+
+// public/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz App</title>
+</head>
+<body>
+  <div id="nickname-screen">
+    <h2>Enter your nickname</h2>
+    <input type="text" id="nickname" placeholder="Nickname">
+    <button id="submit-nickname">Join</button>
+  </div>
+
+  <div id="game-screen" style="display: none;">
+    <h2 id="status">Press the buzzer!</h2>
+    <button id="buzzer">Buzz</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    const nicknameScreen = document.getElementById('nickname-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const nicknameInput = document.getElementById('nickname');
+    const submitNickname = document.getElementById('submit-nickname');
+    const buzzer = document.getElementById('buzzer');
+    const status = document.getElementById('status');
+
+    submitNickname.addEventListener('click', () => {
+      const nickname = nicknameInput.value.trim();
+      if (nickname) {
+        socket.emit('set_nickname', nickname);
+        nicknameScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+      }
+    });
+
+    buzzer.addEventListener('click', () => {
+      socket.emit('buzz');
+    });
+
+    socket.on('lock_buzzers', (firstResponder) => {
+      status.textContent = `${firstResponder} was first!`;
+      buzzer.disabled = true;
+    });
+
+    socket.on('reset_buzzers', () => {
+      status.textContent = 'Press the buzzer!';
+      buzzer.disabled = false;
+    });
+  </script>
+</body>
+</html>
+
