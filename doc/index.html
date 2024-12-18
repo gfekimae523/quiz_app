@@ -10,85 +10,71 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .button-container {
+            margin-top: 20vh;
         }
         #buzzer {
-            margin-top: 20vh;
-            padding: 20px;
+            padding: 20px 40px;
             font-size: 2rem;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            animation: none;
         }
-        #buzzer.disabled {
-            background-color: #888;
+        #buzzer:disabled {
+            background-color: #6c757d;
             cursor: not-allowed;
         }
-        @keyframes blink {
-            0%, 100% { background-color: #ff0000; }
-            50% { background-color: #fff; }
+        #buzzer.flashing {
+            animation: flash 1s infinite alternate;
         }
-        #buzzer.blink {
-            animation: blink 0.5s infinite;
+        @keyframes flash {
+            0% { background-color: #dc3545; }
+            100% { background-color: #ff6b6b; }
         }
     </style>
 </head>
 <body>
     <h1>早押しクイズ</h1>
-    <button id="buzzer">早押しボタン</button>
+    <div class="button-container">
+        <button id="buzzer">早押し</button>
+    </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://buzzer-quiz-app.onrender.com/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
-        const buzzer = document.getElementById('buzzer');
+        const socket = io('https://quiz-app-vhuy.onrender.com/');
 
-        let participantId = prompt("参加者IDを入力してください:");
-        if (!participantId) {
-            participantId = `participant-${Math.random().toString(36).substr(2, 5)}`;
-        }
+        const buzzerButton = document.getElementById('buzzer');
 
-        buzzer.addEventListener('click', () => {
-            if (!buzzer.classList.contains('disabled')) {
-                socket.emit('buzzer-pressed', participantId);
-            }
+        // ボタンを押した際の動作
+        buzzerButton.addEventListener('click', () => {
+            socket.emit('buzz');
+            buzzerButton.disabled = true;
+            buzzerButton.classList.add('flashing');
         });
 
-        socket.on('buzzer-locked', (firstResponder) => {
-            if (firstResponder === participantId) {
-                buzzer.classList.add('blink');
-                buzzer.textContent = 'あなたが押しました！';
-            } else {
-                buzzer.classList.add('disabled');
-                buzzer.textContent = '他の参加者が先に押しました';
-            }
+        // 他のユーザーがボタンを押した場合の処理
+        socket.on('lockout', () => {
+            buzzerButton.disabled = true;
+            buzzerButton.classList.remove('flashing');
         });
 
-        socket.on('buzzer-disabled', () => {
-            buzzer.classList.add('disabled');
-            buzzer.textContent = '他の参加者が先に押しました';
+        // リセット時の処理
+        socket.on('reset', () => {
+            buzzerButton.disabled = false;
+            buzzerButton.classList.remove('flashing');
         });
 
-        socket.on('correct-answer', () => {
-            alert('正解！');
-        });
-
-        socket.on('incorrect-answer', () => {
-            alert('不正解！');
-        });
-
-        socket.on('reset', (excludedParticipants) => {
-            if (!excludedParticipants.includes(participantId)) {
-                buzzer.classList.remove('disabled', 'blink');
-                buzzer.textContent = '早押しボタン';
-            }
-        });
-
+        // 次の問題への処理
         socket.on('next', () => {
-            buzzer.classList.remove('disabled', 'blink');
-            buzzer.textContent = '早押しボタン';
+            buzzerButton.disabled = false;
+            buzzerButton.classList.remove('flashing');
         });
     </script>
 </body>
