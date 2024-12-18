@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しクイズ大会</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #pushButton {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background-color: #808080;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #pushButton.active {
+            animation: pulse 1s infinite;
+        }
+        #pushButton.disabled {
+            cursor: not-allowed;
+            background-color: #444;
+        }
+        @keyframes pulse {
+            0% { background-color: #FF4444; }
+            50% { background-color: #FF6666; }
+            100% { background-color: #FF4444; }
+        }
+        #messageArea {
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+        }
+        #playerSelect {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <select id="playerSelect">
+        <option value="">参加者を選択</option>
+        <option value="player1">参加者1</option>
+        <option value="player2">参加者2</option>
+        <option value="player3">参加者3</option>
+        <option value="player4">参加者4</option>
+    </select>
+
+    <button id="pushButton">PUSH</button>
+    
+    <div id="messageArea"></div>
+
+    <script>
+        const serverUrl = 'https://your-render-server-url.onrender.com'; // RenderサーバーのURLを入力
+        let socket;
+        let playerName = '';
+        const pushButton = document.getElementById('pushButton');
+        const playerSelect = document.getElementById('playerSelect');
+        const messageArea = document.getElementById('messageArea');
+
+        // プレイヤー選択イベント
+        playerSelect.addEventListener('change', (e) => {
+            playerName = e.target.value;
+            if (playerName) {
+                connectWebSocket();
+            }
+        });
+
+        // WebSocket接続
+        function connectWebSocket() {
+            socket = new WebSocket(`${serverUrl}/quiz`);
+
+            socket.onopen = () => {
+                console.log('WebSocket接続成功');
+                messageArea.textContent = 'サーバーに接続しました';
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleServerMessage(data);
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket接続切断');
+                messageArea.textContent = 'サーバーとの接続が切断されました';
+            };
+        }
+
+        // サーバーからのメッセージ処理
+        function handleServerMessage(data) {
+            switch(data.type) {
+                case 'quizStart':
+                    enablePushButton();
+                    break;
+                case 'buttonPressed':
+                    if (data.player !== playerName) {
+                        disablePushButton(false);
+                    }
+                    break;
+                case 'correct':
+                    messageArea.textContent = '正解！';
+                    break;
+                case 'incorrect':
+                    messageArea.textContent = '不正解...';
+                    break;
+                case 'reset':
+                    if (!data.disabledPlayers.includes(playerName)) {
+                        enablePushButton();
+                    }
+                    break;
+            }
+        }
+
+        // ボタン押下イベント
+        pushButton.addEventListener('click', () => {
+            if (!playerName) {
+                alert('先に参加者を選択してください');
+                return;
+            }
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    type: 'buttonPress',
+                    player: playerName
+                }));
+                disablePushButton(true);
+            }
+        });
+
+        // ボタン有効化
+        function enablePushButton() {
+            pushButton.disabled = false;
+            pushButton.classList.remove('disabled');
+            pushButton.textContent = 'PUSH';
+        }
+
+        // ボタン無効化
+        function disablePushButton(isCurrentPlayer) {
+            pushButton.disabled = true;
+            pushButton.classList.add('disabled');
+            
+            if (isCurrentPlayer) {
+                pushButton.classList.add('active');
+                pushButton.textContent = '先に押した！';
+            } else {
+                pushButton.textContent = '他の人が押しました';
+            }
+        }
+    </script>
+</body>
+</html>
