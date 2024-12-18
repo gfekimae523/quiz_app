@@ -1,75 +1,89 @@
-const express = require('express');
+// server.js
+const WebSocket = require('ws');
 const http = require('http');
-const { Server } = require('socket.io');
+const fs = require('fs');
 const path = require('path');
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const server = http.createServer((req, res) => {
+  let filePath = './';
+  if (req.url === '/') filePath += 'index.html';
+  else if (req.url === '/admin') filePath += 'admin.html';
+  else filePath += req.url;
 
-// 静的ファイルを提供するディレクトリを設定
-app.use(express.static(path.join(__dirname, 'public')));
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const mimeTypes = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+    '.mp3': 'audio/mpeg',
+  };
 
-// ルートパスにアクセスされた場合、index.htmlを返す
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      res.writeHead(500);
+      res.end('Error loading file');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': contentType });
+    res.end(content, 'utf-8');
+  });
 });
 
-// WebSocket通信
-let isLocked = false;
-let lockedUser = null;
+const wss = new WebSocket.Server({ server });
 
-io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+let state = {
+  pressedBy: null, // participant_id of the first presser
+  excluded: [], // participants excluded due to incorrect answers
+};
 
-    // 早押しボタンが押された時の処理
-    socket.on('buzz', () => {
-        if (!isLocked) {
-            isLocked = true;
-            lockedUser = socket.id;
-            io.emit('lockout');
-            console.log(`Buzz received from ${socket.id}`);
+wss.on('connection', (ws) => {
+  ws.on('message', (message) => {
+    const data = JSON.parse(message);
+
+    switch (data.type) {
+      case 'button_press':
+        if (!state.pressedBy && !state.excluded.includes(data.participant_id)) {
+          state.pressedBy = data.participant_id;
+          broadcast({ type: 'button_press', participant_id: data.participant_id });
         }
-    });
+        break;
 
-    // 管理者からのコマンドを処理
-    socket.on('admin-command', (data) => {
-        switch (data.type) {
-            case 'correct':
-                console.log('Correct answer acknowledged.');
-                break;
-            case 'incorrect':
-                console.log('Incorrect answer acknowledged.');
-                break;
-            case 'reset':
-                isLocked = false;
-                lockedUser = null;
-                io.emit('reset');
-                console.log('Reset command executed.');
-                break;
-            case 'next':
-                isLocked = false;
-                lockedUser = null;
-                io.emit('next');
-                console.log('Next question command executed.');
-                break;
-            default:
-                console.log('Unknown admin command:', data.type);
-        }
-    });
+      case 'correct':
+        broadcast({ type: 'correct' });
+        break;
 
-    socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-        if (lockedUser === socket.id) {
-            isLocked = false;
-            lockedUser = null;
-            io.emit('reset');
-        }
-    });
+      case 'incorrect':
+        state.excluded.push(state.pressedBy);
+        broadcast({ type: 'incorrect', participant_id: state.pressedBy });
+        break;
+
+      case 'reset':
+        state.pressedBy = null;
+        broadcast({ type: 'reset', excluded: state.excluded });
+        break;
+
+      case 'next':
+        state = { pressedBy: null, excluded: [] };
+        broadcast({ type: 'next' });
+        break;
+
+      default:
+        console.log('Unknown event:', data);
+    }
+  });
 });
 
-// サーバーを開始
+function broadcast(message) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(message));
+    }
+  });
+}
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
