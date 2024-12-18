@@ -1,59 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Admin</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    button {
-      font-size: 18px;
-      margin: 20px;
-      padding: 10px 20px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        button { margin: 10px; padding: 10px 20px; font-size: 18px; }
+    </style>
 </head>
 <body>
-  <h1>Admin Controls</h1>
-  <button id="correct-button">Correct</button>
-  <button id="incorrect-button">Incorrect</button>
-  <button id="reset-button">Reset</button>
-  <button id="next-button">Next Question</button>
-  <audio id="correct-sound" src="/correct.mp3"></audio>
-  <audio id="incorrect-sound" src="/incorrect.mp3"></audio>
-  <script>
-    const ws = new WebSocket('wss://' + location.host);
+    <h1>Quiz Admin</h1>
+    <button id="correct-button">正答</button>
+    <button id="incorrect-button">誤答</button>
+    <button id="reset-button">リセット</button>
+    <button id="next-button">次の問題へ</button>
+    <audio id="correct-sound" src="correct.mp3"></audio>
+    <audio id="incorrect-sound" src="incorrect.mp3"></audio>
+    <script>
+        const ws = new WebSocket('ws://quiz-app-uw75.onrender.com?admin');
+        const correctSound = document.getElementById('correct-sound');
+        const incorrectSound = document.getElementById('incorrect-sound');
 
-    const correctButton = document.getElementById('correct-button');
-    const incorrectButton = document.getElementById('incorrect-button');
-    const resetButton = document.getElementById('reset-button');
-    const nextButton = document.getElementById('next-button');
-    const correctSound = document.getElementById('correct-sound');
-    const incorrectSound = document.getElementById('incorrect-sound');
+        document.getElementById('correct-button').onclick = () => {
+            ws.send(JSON.stringify({ type: 'correct' }));
+            correctSound.play();
+        };
 
-    correctButton.addEventListener('click', () => {
-      correctSound.play();
-      ws.send(JSON.stringify({ type: 'correct' }));
-    });
+        document.getElementById('incorrect-button').onclick = () => {
+            ws.send(JSON.stringify({ type: 'incorrect' }));
+            incorrectSound.play();
+        };
 
-    incorrectButton.addEventListener('click', () => {
-      incorrectSound.play();
-      ws.send(JSON.stringify({ type: 'incorrect' }));
-    });
+        document.getElementById('reset-button').onclick = () => {
+            const excluded = prompt('誤答者を除外（名前をカンマで区切って入力）', '');
+            ws.send(JSON.stringify({ type: 'reset', excluded: excluded.split(',') }));
+        };
 
-    resetButton.addEventListener('click', () => {
-      ws.send(JSON.stringify({ type: 'reset' }));
-    });
-
-    nextButton.addEventListener('click', () => {
-      ws.send(JSON.stringify({ type: 'next' }));
-    });
-  </script>
+        document.getElementById('next-button').onclick = () => {
+            ws.send(JSON.stringify({ type: 'next' }));
+        };
+    </script>
 </body>
 </html>
