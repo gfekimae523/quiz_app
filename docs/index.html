@@ -1,107 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Participant</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    #push-button {
-      background-color: gray;
-      border: none;
-      border-radius: 50%;
-      color: white;
-      font-size: 24px;
-      width: 200px;
-      height: 200px;
-      cursor: pointer;
-      margin-top: 50px;
-    }
-    #push-button.pressed {
-      animation: blink 0.5s infinite;
-    }
-    #push-button.disabled {
-      background-color: darkgray;
-      cursor: not-allowed;
-    }
-    @keyframes blink {
-      0%, 100% { background-color: red; }
-      50% { background-color: #ffcccc; }
-    }
-    select {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-    #message {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Participant</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        button { width: 150px; height: 150px; border-radius: 50%; background-color: gray; color: white; font-size: 20px; }
+        button:disabled { background-color: darkgray; cursor: not-allowed; }
+        .message { margin-top: 20px; }
+        select { margin-top: 20px; }
+    </style>
 </head>
 <body>
-  <h1>Quiz Buzzer</h1>
-  <button id="push-button">Push</button>
-  <div>
+    <h1>Quiz Participant</h1>
+    <button id="buzz-button">PUSH</button>
     <select id="participant-select">
-      <option value="participant1">Participant 1</option>
-      <option value="participant2">Participant 2</option>
-      <option value="participant3">Participant 3</option>
-      <option value="participant4">Participant 4</option>
+        <option value="Alice">Alice</option>
+        <option value="Bob">Bob</option>
+        <option value="Charlie">Charlie</option>
+        <option value="Dave">Dave</option>
     </select>
-  </div>
-  <div id="message"></div>
-  <script>
-    const ws = new WebSocket('wss://' + location.host);
-    const button = document.getElementById('push-button');
-    const message = document.getElementById('message');
-    const participantSelect = document.getElementById('participant-select');
+    <div class="message" id="message"></div>
+    <script>
+        const ws = new WebSocket('ws:///quiz-app-uw75.onrender.com?participant');
+        const buzzButton = document.getElementById('buzz-button');
+        const message = document.getElementById('message');
+        const participantSelect = document.getElementById('participant-select');
 
-    button.addEventListener('click', () => {
-      const participant_id = participantSelect.value;
-      ws.send(JSON.stringify({ type: 'button_press', participant_id }));
-    });
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'you_buzzed') {
+                buzzButton.disabled = true;
+                buzzButton.style.backgroundColor = 'red';
+                setInterval(() => {
+                    buzzButton.style.opacity = buzzButton.style.opacity === '0.5' ? '1' : '0.5';
+                }, 500);
+            } else if (data.type === 'buzzed') {
+                buzzButton.disabled = true;
+                buzzButton.style.backgroundColor = 'darkgray';
+            } else if (data.type === 'reset') {
+                if (!data.excluded.includes(participantSelect.value)) {
+                    buzzButton.disabled = false;
+                    buzzButton.style.backgroundColor = 'gray';
+                }
+            } else if (data.type === 'next') {
+                buzzButton.disabled = false;
+                buzzButton.style.backgroundColor = 'gray';
+            } else if (data.type === 'correct' || data.type === 'incorrect') {
+                message.textContent = data.type === 'correct' ? '正解！🎉' : '不正解💔';
+            }
+        };
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      switch (data.type) {
-        case 'button_press':
-          if (data.participant_id === participantSelect.value) {
-            button.classList.add('pressed');
-          } else {
-            button.classList.add('disabled');
-          }
-          button.disabled = true;
-          break;
-
-        case 'correct':
-          message.textContent = 'Correct!';
-          break;
-
-        case 'incorrect':
-          if (data.participant_id === participantSelect.value) {
-            message.textContent = 'You are excluded for this round.';
-          }
-          break;
-
-        case 'reset':
-          if (!data.excluded.includes(participantSelect.value)) {
-            button.disabled = false;
-            button.classList.remove('disabled', 'pressed');
-          }
-          break;
-
-        case 'next':
-          button.disabled = false;
-          button.classList.remove('disabled', 'pressed');
-          message.textContent = '';
-          break;
-      }
-    };
-  </script>
+        buzzButton.onclick = () => {
+            ws.send(JSON.stringify({ type: 'buzz', participant: participantSelect.value }));
+        };
+    </script>
 </body>
 </html>
