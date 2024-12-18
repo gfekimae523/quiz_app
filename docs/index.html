@@ -56,7 +56,7 @@
             100% { background-color: #FF4444; }
         }
         #messageArea {
-            margin-top: 100px;
+            margin-top: 60px;
             text-align: center;
             width: 100%;
             padding: 10px;
@@ -90,6 +90,9 @@
         const pushButton = document.getElementById('pushButton');
         const playerSelect = document.getElementById('playerSelect');
         const messageArea = document.getElementById('messageArea');
+        const pushSound = new Audio('push.mp3');
+        const correctSound = new Audio('correct.mp3');
+        const incorrectSound = new Audio('incorrect.mp3');
 
         // プレイヤー選択イベント
         playerSelect.addEventListener('change', (e) => {
@@ -129,6 +132,7 @@
                 case 'buttonPressed':
                     if (data.player === playerName) {
                         pressPushButton();
+                        pushSound.play();
                         messageArea.textContent = '回答権ゲット！';
                     } else {
                         if (pushButton.classList.contains('enabled')) {
@@ -140,6 +144,7 @@
                 case 'correct':
                     if (data.player === playerName) {
                         setButtonCorrect();
+                        correctSound.play();
                         messageArea.textContent = '正解！';
                     } else {
                         messageArea.textContent = data.player + 'が正解しました';
@@ -148,6 +153,7 @@
                 case 'incorrect':
                     if (data.player === playerName) {
                         setButtonIncorrect();
+                        incorrectSound.play();
                         messageArea.textContent = '不正解...';
                     } else {
                         messageArea.textContent = '';
@@ -177,6 +183,10 @@
         function push() {
             if (!playerName) {
                 alert('先にチームを選択してください');
+                return;
+            }
+
+            if (!pushButton.classList.contains('enabled')) {
                 return;
             }
 
