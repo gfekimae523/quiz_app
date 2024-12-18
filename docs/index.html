@@ -1,81 +1,107 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>早押しクイズ - 参加者</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: #f7f7f7;
-        }
-        h1 {
-            margin-top: 20px;
-        }
-        .button-container {
-            margin-top: 20vh;
-        }
-        #buzzer {
-            padding: 20px 40px;
-            font-size: 2rem;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        #buzzer:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-        #buzzer.flashing {
-            animation: flash 1s infinite alternate;
-        }
-        @keyframes flash {
-            0% { background-color: #dc3545; }
-            100% { background-color: #ff6b6b; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Participant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #push-button {
+      background-color: gray;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 24px;
+      width: 200px;
+      height: 200px;
+      cursor: pointer;
+      margin-top: 50px;
+    }
+    #push-button.pressed {
+      animation: blink 0.5s infinite;
+    }
+    #push-button.disabled {
+      background-color: darkgray;
+      cursor: not-allowed;
+    }
+    @keyframes blink {
+      0%, 100% { background-color: red; }
+      50% { background-color: #ffcccc; }
+    }
+    select {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
 </head>
 <body>
-    <h1>早押しクイズ</h1>
-    <div class="button-container">
-        <button id="buzzer">早押し</button>
-    </div>
+  <h1>Quiz Buzzer</h1>
+  <button id="push-button">Push</button>
+  <div>
+    <select id="participant-select">
+      <option value="participant1">Participant 1</option>
+      <option value="participant2">Participant 2</option>
+      <option value="participant3">Participant 3</option>
+      <option value="participant4">Participant 4</option>
+    </select>
+  </div>
+  <div id="message"></div>
+  <script>
+    const ws = new WebSocket('wss://' + location.host);
+    const button = document.getElementById('push-button');
+    const message = document.getElementById('message');
+    const participantSelect = document.getElementById('participant-select');
 
-    <script src="https://buzzer-quiz-app.onrender.com/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io('https://buzzer-quiz-app.onrender.com');
+    button.addEventListener('click', () => {
+      const participant_id = participantSelect.value;
+      ws.send(JSON.stringify({ type: 'button_press', participant_id }));
+    });
 
-        const buzzerButton = document.getElementById('buzzer');
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'button_press':
+          if (data.participant_id === participantSelect.value) {
+            button.classList.add('pressed');
+          } else {
+            button.classList.add('disabled');
+          }
+          button.disabled = true;
+          break;
 
-        // ボタンを押した際の動作
-        buzzerButton.addEventListener('click', () => {
-            socket.emit('buzz');
-            buzzerButton.disabled = true;
-            buzzerButton.classList.add('flashing');
-        });
+        case 'correct':
+          message.textContent = 'Correct!';
+          break;
 
-        // 他のユーザーがボタンを押した場合の処理
-        socket.on('lockout', () => {
-            buzzerButton.disabled = true;
-            buzzerButton.classList.remove('flashing');
-        });
+        case 'incorrect':
+          if (data.participant_id === participantSelect.value) {
+            message.textContent = 'You are excluded for this round.';
+          }
+          break;
 
-        // リセット時の処理
-        socket.on('reset', () => {
-            buzzerButton.disabled = false;
-            buzzerButton.classList.remove('flashing');
-        });
+        case 'reset':
+          if (!data.excluded.includes(participantSelect.value)) {
+            button.disabled = false;
+            button.classList.remove('disabled', 'pressed');
+          }
+          break;
 
-        // 次の問題への処理
-        socket.on('next', () => {
-            buzzerButton.disabled = false;
-            buzzerButton.classList.remove('flashing');
-        });
-    </script>
+        case 'next':
+          button.disabled = false;
+          button.classList.remove('disabled', 'pressed');
+          message.textContent = '';
+          break;
+      }
+    };
+  </script>
 </body>
 </html>
