@@ -19,21 +19,38 @@
             width: 300px;
             height: 300px;
             border-radius: 50%;
-            background-color: #808080;
+            background-color: #a0a0a0;
             color: white;
             border: none;
             font-size: 24px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        #pushButton.active {
-            animation: pulse 1s infinite;
+        #pushButton.enabled {
+            background-color: #a0a0a0;
         }
         #pushButton.disabled {
             cursor: not-allowed;
-            background-color: #444;
+            background-color: #303030;
         }
-        @keyframes pulse {
+        #pushButton.pressed {
+            cursor: not-allowed;
+            animation: pulseGreen 1s infinite;
+        }
+        @keyframes pulseGreen {
+            0% { background-color: #40FF40; }
+            50% { background-color: #A0FFA0; }
+            100% { background-color: #40FF40; }
+        }
+        #pushButton.incorrect {
+            cursor: not-allowed;
+            background-color: #8080FF;
+        }
+        #pushButton.correct {
+            cursor: not-allowed;
+            animation: pulseRed 1s infinite;
+        }
+        @keyframes pulseRed {
             0% { background-color: #FF4444; }
             50% { background-color: #FF6666; }
             100% { background-color: #FF4444; }
@@ -53,11 +70,11 @@
 </head>
 <body>
     <select id="playerSelect">
-        <option value="">参加者を選択</option>
-        <option value="player1">参加者1</option>
-        <option value="player2">参加者2</option>
-        <option value="player3">参加者3</option>
-        <option value="player4">参加者4</option>
+        <option value="">チームを選択</option>
+        <option value="player1">チーム清水</option>
+        <option value="player2">チーム森岡</option>
+        <option value="player3">チーム安藤</option>
+        <option value="player4">チーム澤田</option>
     </select>
 
     <button id="pushButton">PUSH</button>
@@ -108,13 +125,15 @@
                     break;
                 case 'buttonPressed':
                     if (data.player !== playerName) {
-                        disablePushButton(false);
+                        disablePushButton();
                     }
                     break;
                 case 'correct':
+                    setButtonCorrect();
                     messageArea.textContent = '正解！';
                     break;
                 case 'incorrect':
+                    setButtonIncorrect();
                     messageArea.textContent = '不正解...';
                     break;
                 case 'reset':
@@ -128,7 +147,7 @@
         // ボタン押下イベント
         pushButton.addEventListener('click', () => {
             if (!playerName) {
-                alert('先に参加者を選択してください');
+                alert('先にチームを選択してください');
                 return;
             }
 
@@ -137,28 +156,40 @@
                     type: 'buttonPress',
                     player: playerName
                 }));
-                disablePushButton(true);
+                pressPushButton();
             }
         });
 
         // ボタン有効化
         function enablePushButton() {
             pushButton.disabled = false;
-            pushButton.classList.remove('disabled');
-            pushButton.textContent = 'PUSH';
+            pushButton.classList.remove(...pushButton.classList);
+            pushButton.classList.add('enabled');
         }
 
         // ボタン無効化
-        function disablePushButton(isCurrentPlayer) {
+        function disablePushButton() {
             pushButton.disabled = true;
+            pushButton.classList.remove(...pushButton.classList);
             pushButton.classList.add('disabled');
-            
-            if (isCurrentPlayer) {
-                pushButton.classList.add('active');
-                pushButton.textContent = '先に押した！';
-            } else {
-                pushButton.textContent = '他の人が押しました';
-            }
+        }
+
+        function pressPushButton() {
+            pushButton.disabled = true;
+            pushButton.classList.remove(...pushButton.classList);
+            pushButton.classList.add('pressed');
+        }
+
+        function setButtonCorrect() {
+            pushButton.disabled = true;
+            pushButton.classList.remove(...pushButton.classList);
+            pushButton.classList.add('correct');
+        }
+
+        function setButtonIncorrect() {
+            pushButton.disabled = true;
+            pushButton.classList.remove(...pushButton.classList);
+            pushButton.classList.add('incorrect');
         }
     </script>
 </body>
