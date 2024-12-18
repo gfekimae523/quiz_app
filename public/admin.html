@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しクイズ - 管理者</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .button-container {
+            margin-top: 20vh;
+        }
+        button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        button.correct {
+            background-color: #28a745;
+        }
+        button.incorrect {
+            background-color: #dc3545;
+        }
+        button.reset {
+            background-color: #ffc107;
+        }
+        button.next {
+            background-color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <h1>管理者用コントロール</h1>
+    <div class="button-container">
+        <button class="correct" id="correct">正答</button>
+        <button class="incorrect" id="incorrect">誤答</button>
+        <button class="reset" id="reset">リセット</button>
+        <button class="next" id="next">次の問題</button>
+    </div>
+
+    <audio id="correct-sound" src="/sounds/correct.mp3"></audio>
+    <audio id="incorrect-sound" src="/sounds/incorrect.mp3"></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const correctButton = document.getElementById('correct');
+        const incorrectButton = document.getElementById('incorrect');
+        const resetButton = document.getElementById('reset');
+        const nextButton = document.getElementById('next');
+
+        const correctSound = document.getElementById('correct-sound');
+        const incorrectSound = document.getElementById('incorrect-sound');
+
+        correctButton.addEventListener('click', () => {
+            socket.emit('admin-command', { type: 'correct' });
+            correctSound.play();
+        });
+
+        incorrectButton.addEventListener('click', () => {
+            socket.emit('admin-command', { type: 'incorrect' });
+            incorrectSound.play();
+        });
+
+        resetButton.addEventListener('click', () => {
+            socket.emit('admin-command', { type: 'reset' });
+        });
+
+        nextButton.addEventListener('click', () => {
+            socket.emit('admin-command', { type: 'next' });
+        });
+    </script>
+</body>
+</html>
