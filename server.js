@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -8,62 +7,64 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Static files for public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-let lockState = {
-  buzzerLocked: false,
-  firstResponder: null,
-  excludedParticipants: new Set(),
-};
+// WebSocket communication
+let isLocked = false;
+let lockedUser = null;
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+    console.log(`User connected: ${socket.id}`);
 
-  // Handle buzzer pressed
-  socket.on('buzzer-pressed', (participantId) => {
-    if (!lockState.buzzerLocked) {
-      lockState.buzzerLocked = true;
-      lockState.firstResponder = participantId;
-      io.emit('buzzer-locked', participantId);
-    } else {
-      socket.emit('buzzer-disabled');
-    }
-  });
-
-  // Handle admin commands
-  socket.on('admin-command', (command) => {
-    switch (command.type) {
-      case 'correct':
-        io.emit('correct-answer');
-        break;
-      case 'incorrect':
-        io.emit('incorrect-answer');
-        if (lockState.firstResponder) {
-          lockState.excludedParticipants.add(lockState.firstResponder);
+    // Handle buzz event
+    socket.on('buzz', () => {
+        if (!isLocked) {
+            isLocked = true;
+            lockedUser = socket.id;
+            io.emit('lockout');
+            console.log(`Buzz received from ${socket.id}`);
         }
-        break;
-      case 'reset':
-        lockState.buzzerLocked = false;
-        lockState.firstResponder = null;
-        io.emit('reset', Array.from(lockState.excludedParticipants));
-        break;
-      case 'next':
-        lockState = {
-          buzzerLocked: false,
-          firstResponder: null,
-          excludedParticipants: new Set(),
-        };
-        io.emit('next');
-        break;
-    }
-  });
+    });
 
-  socket.on('disconnect', () => {
-    console.log('A user disconnected:', socket.id);
-  });
+    // Admin commands
+    socket.on('admin-command', (data) => {
+        switch (data.type) {
+            case 'correct':
+                console.log('Correct answer acknowledged.');
+                break;
+            case 'incorrect':
+                console.log('Incorrect answer acknowledged.');
+                break;
+            case 'reset':
+                isLocked = false;
+                lockedUser = null;
+                io.emit('reset');
+                console.log('Reset command executed.');
+                break;
+            case 'next':
+                isLocked = false;
+                lockedUser = null;
+                io.emit('next');
+                console.log('Next question command executed.');
+                break;
+            default:
+                console.log('Unknown admin command:', data.type);
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+        if (lockedUser === socket.id) {
+            isLocked = false;
+            lockedUser = null;
+            io.emit('reset');
+        }
+    });
 });
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
