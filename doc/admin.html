@@ -57,9 +57,9 @@
     <audio id="correct-sound" src="/sounds/correct.mp3"></audio>
     <audio id="incorrect-sound" src="/sounds/incorrect.mp3"></audio>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://quiz-app-vhuy.onrender.com/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        const socket = io('https://quiz-app-vhuy.onrender.com/');
 
         const correctButton = document.getElementById('correct');
         const incorrectButton = document.getElementById('incorrect');
