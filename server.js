@@ -1,75 +1,55 @@
-const WebSocket = require('ws');
+// server.js
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 
-const server = new WebSocket.Server({ port: process.env.PORT || 3000 });
-let participants = []; // 参加者ごとのWebSocket
-let admin = null; // 管理者のWebSocket
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-server.on('connection', (ws, req) => {
-    ws.on('message', (message) => {
-        const data = JSON.parse(message);
+// Serve static files
+app.use(express.static('public'));
 
-        // メッセージの種類で分岐
-        switch (data.type) {
-            case 'participant-register': {
-                // 参加者を登録
-                participants.push({ name: data.name, ws, locked: false });
-                break;
-            }
-            case 'buzz': {
-                // 早押し通知
-                participants.forEach((p) => {
-                    if (p.ws === ws) {
-                        p.locked = true;
-                        p.ws.send(JSON.stringify({ type: 'buzz-self' }));
-                    } else {
-                        p.ws.send(JSON.stringify({ type: 'buzz-other' }));
-                    }
-                });
-                if (admin) {
-                    admin.send(JSON.stringify({ type: 'buzz', name: data.name }));
-                }
-                break;
-            }
-            case 'admin-register': {
-                // 管理者を登録
-                admin = ws;
-                break;
-            }
-            case 'correct': {
-                // 正答通知
-                participants.forEach((p) => {
-                    p.ws.send(JSON.stringify({ type: 'correct' }));
-                });
-                break;
-            }
-            case 'incorrect': {
-                // 誤答通知
-                participants.forEach((p) => {
-                    p.ws.send(JSON.stringify({ type: 'incorrect' }));
-                });
-                break;
-            }
-            case 'reset': {
-                // ボタン状態をリセット
-                participants.forEach((p) => {
-                    p.locked = false;
-                    p.ws.send(JSON.stringify({ type: 'reset' }));
-                });
-                break;
-            }
-            case 'next': {
-                // 次の問題に進む
-                participants.forEach((p) => {
-                    p.locked = false;
-                    p.ws.send(JSON.stringify({ type: 'next' }));
-                });
-                break;
-            }
+// WebSocket logic
+let pressedBy = null; // Tracks who pressed the button first
+let blockedParticipants = new Set(); // Tracks participants blocked from answering
+
+io.on('connection', (socket) => {
+    console.log('A user connected');
+
+    socket.on('button_press', (data) => {
+        if (!pressedBy && !blockedParticipants.has(data.participant)) {
+            pressedBy = data.participant;
+            io.emit('update_buttons', { winner: data.participant });
+        } else {
+            socket.emit('button_locked');
         }
     });
 
-    ws.on('close', () => {
-        participants = participants.filter((p) => p.ws !== ws);
-        if (admin === ws) admin = null;
+    socket.on('admin_action', (action) => {
+        if (action.type === 'correct') {
+            io.emit('correct_answer');
+        } else if (action.type === 'incorrect') {
+            io.emit('incorrect_answer', { participant: pressedBy });
+            blockedParticipants.add(pressedBy);
+        } else if (action.type === 'reset') {
+            blockedParticipants.add(pressedBy); // Keep the incorrect participant blocked
+            pressedBy = null;
+            io.emit('reset_buttons', { blocked: Array.from(blockedParticipants) });
+        } else if (action.type === 'next_question') {
+            pressedBy = null;
+            blockedParticipants.clear();
+            io.emit('reset_buttons', { blocked: [] });
+        }
     });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
