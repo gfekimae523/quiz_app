@@ -1,8 +1,19 @@
 const WebSocket = require('ws');
 const http = require('http');
 
-// サーバーの設定
-const server = http.createServer();
+// HTTP サーバーを作成
+const server = http.createServer((req, res) => {
+    // Render のポートスキャン用の応答を追加
+    if (req.url === "/health") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("OK");
+    } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found");
+    }
+});
+
+// WebSocket サーバーを HTTP サーバーにアタッチ
 const wss = new WebSocket.Server({ server });
 
 // クライアント情報
@@ -60,6 +71,7 @@ wss.on('connection', (ws, req) => {
     });
 });
 
+// Render のポート (環境変数 PORT) で HTTP サーバーをリッスン
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
