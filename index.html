@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しクイズ - 参加者</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #buzzer {
+            margin-top: 20vh;
+            padding: 20px;
+            font-size: 2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            animation: none;
+        }
+        #buzzer.disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
+        @keyframes blink {
+            0%, 100% { background-color: #ff0000; }
+            50% { background-color: #fff; }
+        }
+        #buzzer.blink {
+            animation: blink 0.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <h1>早押しクイズ</h1>
+    <button id="buzzer">早押しボタン</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const buzzer = document.getElementById('buzzer');
+
+        let participantId = prompt("参加者IDを入力してください:");
+        if (!participantId) {
+            participantId = `participant-${Math.random().toString(36).substr(2, 5)}`;
+        }
+
+        buzzer.addEventListener('click', () => {
+            if (!buzzer.classList.contains('disabled')) {
+                socket.emit('buzzer-pressed', participantId);
+            }
+        });
+
+        socket.on('buzzer-locked', (firstResponder) => {
+            if (firstResponder === participantId) {
+                buzzer.classList.add('blink');
+                buzzer.textContent = 'あなたが押しました！';
+            } else {
+                buzzer.classList.add('disabled');
+                buzzer.textContent = '他の参加者が先に押しました';
+            }
+        });
+
+        socket.on('buzzer-disabled', () => {
+            buzzer.classList.add('disabled');
+            buzzer.textContent = '他の参加者が先に押しました';
+        });
+
+        socket.on('correct-answer', () => {
+            alert('正解！');
+        });
+
+        socket.on('incorrect-answer', () => {
+            alert('不正解！');
+        });
+
+        socket.on('reset', (excludedParticipants) => {
+            if (!excludedParticipants.includes(participantId)) {
+                buzzer.classList.remove('disabled', 'blink');
+                buzzer.textContent = '早押しボタン';
+            }
+        });
+
+        socket.on('next', () => {
+            buzzer.classList.remove('disabled', 'blink');
+            buzzer.textContent = '早押しボタン';
+        });
+    </script>
+</body>
+</html>
