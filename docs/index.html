@@ -92,6 +92,7 @@
         const playerSelect = document.getElementById('playerSelect');
         const messageArea = document.getElementById('messageArea');
         const pushSound = new Audio('push.mp3');
+        const nextSound = new Audio('next.mp3');
         const correctSound = new Audio('correct.mp3');
         const incorrectSound = new Audio('incorrect.mp3');
 
@@ -128,6 +129,7 @@
             switch(data.type) {
                 case 'quizStart':
                     enablePushButton();
+                    nextSound.play();
                     messageArea.textContent = '';
                     break;
                 case 'buttonPressed':
