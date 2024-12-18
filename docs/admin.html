@@ -67,6 +67,7 @@
         const messageArea = document.getElementById('messageArea');
 
         // 音声ファイルの準備
+        const nextSound = new Audio('next.mp3');
         const correctSound = new Audio('correct.mp3');
         const incorrectSound = new Audio('incorrect.mp3');
 
@@ -126,6 +127,7 @@
 
         document.getElementById('nextButton').addEventListener('click', () => {
             if (socket && socket.readyState === WebSocket.OPEN) {
+                nextSound.play();
                 socket.send(JSON.stringify({ type: 'nextQuestion' }));
                 messageArea.textContent = '次の問題へ';
             }
