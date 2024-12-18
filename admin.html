@@ -16,7 +16,7 @@
     <button id="resetButton">リセット</button>
     <button id="nextButton">次の問題</button>
     <script>
-        const socket = new WebSocket('wss://your-render-service-url.onrender.com');
+        const socket = new WebSocket('wss://quiz-app-uw75.onrender.com');
         socket.addEventListener('open', () => {
             socket.send(JSON.stringify({ type: 'admin-register' }));
         });
