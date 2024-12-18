@@ -85,7 +85,7 @@ function handleAdminConnection(ws) {
                 break;
 
             case 'reset':
-                gameStete.currentQuestionState.firstPressed = null;
+                gameState.currentQuestionState.firstPressed = null;
                 broadcastToParticipants({
                     type: 'reset',
                     disabledPlayers: gameState.currentQuestionState.disabledPlayers
