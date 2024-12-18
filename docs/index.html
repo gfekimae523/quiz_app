@@ -122,23 +122,37 @@
             switch(data.type) {
                 case 'quizStart':
                     enablePushButton();
+                    messageArea.textContent = '';
                     break;
                 case 'buttonPressed':
-                    if (data.player !== playerName) {
+                    if (data.player === playerName) {
+                        pressPushButton();
+                        messageArea.textContent = '回答権ゲット！';
+                    } else {
                         disablePushButton();
+                        messageArea.textContent = data.player + 'が押しました';
                     }
                     break;
                 case 'correct':
-                    setButtonCorrect();
-                    messageArea.textContent = '正解！';
+                    if (data.player === playerName) {
+                        setButtonCorrect();
+                        messageArea.textContent = '正解！';
+                    } else {
+                        messageArea.textContent = data.player + 'が正解しました';
+                    }
                     break;
                 case 'incorrect':
-                    setButtonIncorrect();
-                    messageArea.textContent = '不正解...';
+                    if (data.player === playerName) {
+                        setButtonIncorrect();
+                        messageArea.textContent = '不正解...';
+                    } else {
+                        messageArea.textContent = '';
+                    }
                     break;
                 case 'reset':
                     if (!data.disabledPlayers.includes(playerName)) {
                         enablePushButton();
+                        messageArea.textContent = '';
                     }
                     break;
             }
@@ -156,7 +170,7 @@
                     type: 'buttonPress',
                     player: playerName
                 }));
-                pressPushButton();
+                
             }
         });
 
