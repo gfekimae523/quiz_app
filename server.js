@@ -7,17 +7,22 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Static files for public directory
+// 静的ファイルを提供するディレクトリを設定
 app.use(express.static(path.join(__dirname, 'public')));
 
-// WebSocket communication
+// ルートパスにアクセスされた場合、index.htmlを返す
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// WebSocket通信
 let isLocked = false;
 let lockedUser = null;
 
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Handle buzz event
+    // 早押しボタンが押された時の処理
     socket.on('buzz', () => {
         if (!isLocked) {
             isLocked = true;
@@ -27,7 +32,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Admin commands
+    // 管理者からのコマンドを処理
     socket.on('admin-command', (data) => {
         switch (data.type) {
             case 'correct':
@@ -63,7 +68,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// Start the server
+// サーバーを開始
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
