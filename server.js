@@ -163,6 +163,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      console.log(data);
       
       switch (data.type) {
         case 'register':
