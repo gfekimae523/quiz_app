@@ -266,6 +266,7 @@
             const serverUrl = window.location.hostname === "localhost" 
                 ? `ws://${window.location.hostname}:3000` 
                 : `wss://${window.location.host}`;
+            console.log(serverUrl);
                 
             socket = new WebSocket(serverUrl);
             
