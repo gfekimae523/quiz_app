@@ -1,7 +1,6 @@
 {
-  "name": "your-app-name",
+  "name": "quiz-app",
   "version": "1.0.0",
-  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
@@ -10,4 +9,3 @@
     "ws": "^8.2.3"
   }
 }
-  
