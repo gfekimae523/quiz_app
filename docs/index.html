@@ -265,7 +265,7 @@
         function connectWebSocket() {
             const serverUrl = window.location.hostname === "localhost" 
                 ? `ws://${window.location.hostname}:3000` 
-                : `wss://${window.location.host}`;
+                : `wss://quiz-app-8smm.onrender.com`;
             console.log(serverUrl);
                 
             socket = new WebSocket(serverUrl);
