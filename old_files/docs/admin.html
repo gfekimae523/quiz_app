@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しクイズ 管理画面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .admin-button {
+            width: 200px;
+            height: 100px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        #correctButton {
+            background-color: green;
+        }
+        #incorrectButton {
+            background-color: red;
+        }
+        #resetButton {
+            background-color: orange;
+        }
+        #nextButton {
+            background-color: blue;
+        }
+        #messageArea {
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="messageArea">クイズ管理画面</div>
+
+    <div class="button-container">
+        <button id="correctButton" class="admin-button">正答</button>
+        <button id="incorrectButton" class="admin-button">誤答</button>
+        <button id="resetButton" class="admin-button">リセット</button>
+        <button id="nextButton" class="admin-button">次の問題</button>
+    </div>
+
+    <script>
+        const serverUrl = 'https://quiz-app-8smm.onrender.com'; // RenderサーバーのURLを入力
+        let socket;
+        const messageArea = document.getElementById('messageArea');
+
+        // 音声ファイルの準備
+        const nextSound = new Audio('next.mp3');
+        const correctSound = new Audio('correct.mp3');
+        const incorrectSound = new Audio('incorrect.mp3');
+
+        // WebSocket接続
+        function connectWebSocket() {
+            socket = new WebSocket(`${serverUrl}/admin`);
+
+            socket.onopen = () => {
+                console.log('WebSocket接続成功');
+                messageArea.textContent = '管理画面に接続しました';
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleServerMessage(data);
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket接続切断');
+                messageArea.textContent = 'サーバーとの接続が切断されました';
+                setTimeout(connectWebSocket, 3000); // 自動再接続
+            };
+        }
+
+        // サーバーからのメッセージ処理
+        function handleServerMessage(data) {
+            switch(data.type) {
+                case 'playerStatus':
+                    messageArea.textContent = `最後に押したプレイヤー: ${data.player || 'なし'}`;
+                    break;
+            }
+        }
+
+        // ボタンイベントリスナー
+        document.getElementById('correctButton').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                correctSound.play();
+                socket.send(JSON.stringify({ type: 'correct' }));
+                messageArea.textContent = '正解！';
+            }
+        });
+
+        document.getElementById('incorrectButton').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                incorrectSound.play();
+                socket.send(JSON.stringify({ type: 'incorrect' }));
+                messageArea.textContent = '不正解...';
+            }
+        });
+
+        document.getElementById('resetButton').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'reset' }));
+                messageArea.textContent = 'リセット - 誤答者以外が再チャレンジ可能';
+            }
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                nextSound.play();
+                socket.send(JSON.stringify({ type: 'nextQuestion' }));
+                messageArea.textContent = '次の問題へ';
+            }
+        });
+
+        // ページ読み込み時にWebSocket接続
+        connectWebSocket();
+    </script>
+</body>
+</html>

@@ -3,236 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>早押しクイズ大会</title>
+    <title>逆ビンゴ - プレイヤー画面</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        #playerSelect {
-            margin-top: 0;
-            margin-bottom: 30px;
-            margin-left: auto;
-            margin-right: 20px;
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .team-selection, .player-area {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .team-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .team-A { background-color: #3498db; color: white; }
+        .team-A:hover { background-color: #2980b9; }
+        .team-B { background-color: #e74c3c; color: white; }
+        .team-B:hover { background-color: #c0392b; }
+        .team-C { background-color: #2ecc71; color: white; }
+        .team-C:hover { background-color: #27ae60; }
+        .team-D { background-color: #f39c12; color: white; }
+        .team-D:hover { background-color: #d35400; }
+        
+        .player-info {
+            margin-bottom: 15px;
+        }
+        .player-info span {
+            font-weight: bold;
+        }
+        .game-status {
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #eef7ff;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .question-area {
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
             font-size: 18px;
         }
-        #pushButton {
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background-color: #a0a0a0;
+        .buzzer-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 24px;
+            background-color: #3498db;
             color: white;
             border: none;
-            font-size: 24px;
+            border-radius: 50px;
+            margin: 15px 0;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
         }
-        #pushButton.enabled {
-            background-color: #a0a0a0;
+        .buzzer-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
         }
-        #pushButton.disabled {
+        .buzzer-btn:disabled {
+            background-color: #cccccc;
+            transform: none;
             cursor: not-allowed;
-            background-color: #303030;
         }
-        #pushButton.pressed {
-            cursor: not-allowed;
-            animation: pulseGreen 1s infinite;
+        .bingo-sheet {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
         }
-        @keyframes pulseGreen {
-            0% { background-color: #40FF40; }
-            50% { background-color: #A0FFA0; }
-            100% { background-color: #40FF40; }
+        .cell {
+            border: 1px solid #ddd;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
         }
-        #pushButton.incorrect {
-            cursor: not-allowed;
-            background-color: #8080FF;
+        .cell:hover {
+            background-color: #f0f0f0;
         }
-        #pushButton.correct {
-            cursor: not-allowed;
-            animation: pulseRed 1s infinite;
+        .marked {
+            background-color: #3498db;
+            color: white;
         }
-        @keyframes pulseRed {
-            0% { background-color: #FF4040; }
-            50% { background-color: #FF8080; }
-            100% { background-color: #FF4040; }
+        .marked:hover {
+            background-color: #2980b9;
         }
-        #messageArea {
-            margin-top: 60px;
+        .number-selection {
+            margin-top: 15px;
             text-align: center;
-            width: 100%;
-            height: 20px;
+        }
+        .number-input {
+            width: 100px;
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        .submit-btn {
+            padding: 10px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .submit-btn:hover {
+            background-color: #27ae60;
+        }
+        .submit-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .eliminated-msg {
+            padding: 15px;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .answered-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .answered-number {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
             font-size: 14px;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <select id="playerSelect">
-        <option value="">チームを選択</option>
-        <option value="チーム毛利">チーム毛利</option>
-        <option value="チーム野田">チーム野田</option>
-        <option value="チーム安藤">チーム安藤</option>
-        <option value="チーム澤田">チーム澤田</option>
-    </select>
-
-    <button id="pushButton" class="enabled">PUSH</button>
+    <div class="header">
+        <h1>逆ビンゴ</h1>
+    </div>
     
-    <div id="messageArea"></div>
-
+    <!-- チーム選択画面 -->
+    <div id="team-selection" class="team-selection">
+        <h2>チームを選択してください</h2>
+        <button class="team-btn team-A" data-team="A">チームA</button>
+        <button class="team-btn team-B" data-team="B">チームB</button>
+        <button class="team-btn team-C" data-team="C">チームC</button>
+        <button class="team-btn team-D" data-team="D">チームD</button>
+    </div>
+    
+    <!-- プレイヤーエリア（最初は非表示） -->
+    <div id="player-area" class="player-area hidden">
+        <div class="player-info">
+            チーム: <span id="team-display"></span>
+        </div>
+        
+        <div id="eliminated-msg" class="eliminated-msg hidden">
+            あなたのチームは脱落しました!
+        </div>
+        
+        <div class="game-status">
+            <div id="game-state">問題待機中...</div>
+        </div>
+        
+        <div id="question-area" class="question-area hidden">
+            <div id="question-text"></div>
+        </div>
+        
+        <button id="buzzer-btn" class="buzzer-btn" disabled>解答する!</button>
+        
+        <div id="number-selection" class="number-selection hidden">
+            <h3>消す数字を選んでください</h3>
+            <input type="number" id="number-input" class="number-input" min="1" max="75">
+            <button id="submit-number" class="submit-btn">決定</button>
+        </div>
+        
+        <h3>あなたのビンゴシート</h3>
+        <div id="bingo-sheet" class="bingo-sheet">
+            <!-- ビンゴシートはJSで生成 -->
+        </div>
+        
+        <div>
+            <h3>既に選ばれた数字</h3>
+            <div id="answered-numbers" class="answered-numbers"></div>
+        </div>
+    </div>
+    
     <script>
-        const serverUrl = 'https://quiz-app-8smm.onrender.com'; // RenderサーバーのURLを入力
-        let socket;
-        let playerName = '';
-        const pushButton = document.getElementById('pushButton');
-        const playerSelect = document.getElementById('playerSelect');
-        const messageArea = document.getElementById('messageArea');
-        const pushSound = new Audio('push.mp3');
-        const nextSound = new Audio('next.mp3');
-        const correctSound = new Audio('correct.mp3');
-        const incorrectSound = new Audio('incorrect.mp3');
-
-        // プレイヤー選択イベント
-        playerSelect.addEventListener('change', (e) => {
-            playerName = e.target.value;
-            if (playerName) {
+        // ゲーム状態
+        let gameState = {
+            team: null,
+            bingoSheet: [],
+            quizState: 'waiting',
+            answeredNumbers: [],
+            eliminated: false
+        };
+        
+        // DOM要素
+        const teamSelection = document.getElementById('team-selection');
+        const playerArea = document.getElementById('player-area');
+        const teamDisplay = document.getElementById('team-display');
+        const gameStateDisplay = document.getElementById('game-state');
+        const questionArea = document.getElementById('question-area');
+        const questionText = document.getElementById('question-text');
+        const buzzerBtn = document.getElementById('buzzer-btn');
+        const numberSelection = document.getElementById('number-selection');
+        const numberInput = document.getElementById('number-input');
+        const submitNumber = document.getElementById('submit-number');
+        const bingoSheetEl = document.getElementById('bingo-sheet');
+        const answeredNumbersEl = document.getElementById('answered-numbers');
+        const eliminatedMsg = document.getElementById('eliminated-msg');
+        
+        // WebSocket接続
+        let socket = null;
+        
+        // チーム選択ボタンイベントリスナー
+        document.querySelectorAll('.team-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const team = this.getAttribute('data-team');
+                gameState.team = team;
+                teamDisplay.textContent = team;
+                
+                // チーム選択画面を非表示にしてプレイヤーエリアを表示
+                teamSelection.classList.add('hidden');
+                playerArea.classList.remove('hidden');
+                
+                // WebSocket接続
                 connectWebSocket();
-            }
+            });
         });
-
+        
         // WebSocket接続
         function connectWebSocket() {
-            socket = new WebSocket(`${serverUrl}/quiz`);
-
+            const serverUrl = window.location.hostname === "localhost" 
+                ? `ws://${window.location.hostname}:3000` 
+                : `wss://${window.location.host}`;
+                
+            socket = new WebSocket(serverUrl);
+            
             socket.onopen = () => {
-                console.log('WebSocket接続成功');
-                messageArea.textContent = 'サーバーに接続しました';
+                console.log('Connected to server');
+                socket.send(JSON.stringify({
+                    type: 'register',
+                    clientType: 'player',
+                    team: gameState.team
+                }));
             };
-
+            
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                handleServerMessage(data);
-            };
-
-            socket.onclose = () => {
-                console.log('WebSocket接続切断');
-                messageArea.textContent = 'サーバーとの接続が切断されました';
-            };
-        }
-
-        // サーバーからのメッセージ処理
-        function handleServerMessage(data) {
-            switch(data.type) {
-                case 'quizStart':
-                    enablePushButton();
-                    nextSound.play();
-                    messageArea.textContent = '';
-                    break;
-                case 'buttonPressed':
-                    if (data.player === playerName) {
-                        pressPushButton();
-                        pushSound.play();
-                        messageArea.textContent = '回答権ゲット！';
-                    } else {
-                        if (pushButton.classList.contains('enabled')) {
-                            disablePushButton();
-                        }
-                        messageArea.textContent = data.player + 'が押しました';
-                    }
-                    break;
-                case 'correct':
-                    if (data.player === playerName) {
-                        setButtonCorrect();
-                        correctSound.play();
-                        messageArea.textContent = '正解！';
-                    } else {
-                        messageArea.textContent = data.player + 'が正解しました';
-                    }
-                    break;
-                case 'incorrect':
-                    if (data.player === playerName) {
-                        setButtonIncorrect();
-                        incorrectSound.play();
-                        messageArea.textContent = '不正解...';
-                    } else {
-                        messageArea.textContent = '';
-                    }
-                    break;
-                case 'reset':
-                    if (!data.disabledPlayers.includes(playerName)) {
-                        enablePushButton();
-                        messageArea.textContent = '';
-                    }
-                    break;
-            }
-        }
-
-        // ボタン押下イベント
-        pushButton.addEventListener('click', () => {
-            push();
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                push();
-            }
-        });
-
-        function push() {
-            if (!playerName) {
-                alert('先にチームを選択してください');
-                return;
-            }
-
-            if (!pushButton.classList.contains('enabled')) {
-                return;
-            }
-
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    type: 'buttonPress',
-                    player: playerName
-                }));
+                console.log('Received:', data);
                 
+                switch (data.type) {
+                    case 'init':
+                        gameState.bingoSheet = data.bingoSheet;
+                        gameState.quizState = data.quizState;
+                        gameState.answeredNumbers = data.answeredNumbers;
+                        gameState.eliminated = data.eliminated;
+                        updateUI();
+                        break;
+                        
+                    case 'quizStarted':
+                        gameState.quizState = 'active';
+                        questionText.textContent = data.question || '問題が出題されました';
+                        questionArea.classList.remove('hidden');
+                        buzzerBtn.disabled = false;
+                        updateGameState();
+                        break;
+                        
+                    case 'answerResult':
+                        if (data.result === 'correct' && data.team === gameState.team) {
+                            gameState.quizState = 'answered';
+                            updateGameState();
+                        }
+                        break;
+                        
+                    case 'selectNumber':
+                        numberSelection.classList.remove('hidden');
+                        buzzerBtn.disabled = true;
+                        break;
+                        
+                    case 'numberSelected':
+                        numberSelection.classList.add('hidden');
+                        if (!gameState.answeredNumbers.includes(data.number)) {
+                            gameState.answeredNumbers.push(data.number);
+                        }
+                        updateBingoSheet();
+                        updateAnsweredNumbers();
+                        break;
+                        
+                    case 'bingoOccurred':
+                        if (data.teams.includes(gameState.team)) {
+                            gameState.eliminated = true;
+                            eliminatedMsg.classList.remove('hidden');
+                            buzzerBtn.disabled = true;
+                        }
+                        break;
+                        
+                    case 'waitingForNextQuestion':
+                        gameState.quizState = 'waiting';
+                        questionArea.classList.add('hidden');
+                        buzzerBtn.disabled = true;
+                        updateGameState();
+                        break;
+                        
+                    case 'gameOver':
+                        const message = data.winner === gameState.team 
+                            ? 'おめでとうございます！あなたのチームが優勝しました！' 
+                            : `チーム${data.winner}の勝利です！`;
+                        gameStateDisplay.textContent = `ゲーム終了 - ${message}`;
+                        break;
+                        
+                    case 'gameReset':
+                        location.reload(); // 簡単にリセットするためにページをリロード
+                        break;
+                }
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+            };
+            
+            socket.onclose = () => {
+                console.log('Disconnected from server');
+            };
+        }
+        
+        // UI更新関数
+        function updateUI() {
+            if (gameState.eliminated) {
+                eliminatedMsg.classList.remove('hidden');
+                buzzerBtn.disabled = true;
             }
+            
+            updateGameState();
+            updateBingoSheet();
+            updateAnsweredNumbers();
         }
-
-        // ボタン有効化
-        function enablePushButton() {
-            pushButton.disabled = false;
-            pushButton.classList.remove(...pushButton.classList);
-            pushButton.classList.add('enabled');
+        
+        function updateGameState() {
+            const stateText = {
+                'waiting': '問題待機中...',
+                'active': '解答してください！',
+                'answered': '数字を選択してください'
+            };
+            gameStateDisplay.textContent = stateText[gameState.quizState];
         }
-
-        // ボタン無効化
-        function disablePushButton() {
-            pushButton.disabled = true;
-            pushButton.classList.remove(...pushButton.classList);
-            pushButton.classList.add('disabled');
+        
+        function updateBingoSheet() {
+            bingoSheetEl.innerHTML = '';
+            
+            if (!gameState.bingoSheet || gameState.bingoSheet.length === 0) return;
+            
+            gameState.bingoSheet.forEach(row => {
+                row.forEach(cell => {
+                    const cellEl = document.createElement('div');
+                    cellEl.className = `cell ${cell.marked ? 'marked' : ''}`;
+                    cellEl.textContent = cell.value;
+                    bingoSheetEl.appendChild(cellEl);
+                });
+            });
         }
-
-        function pressPushButton() {
-            pushButton.disabled = true;
-            pushButton.classList.remove(...pushButton.classList);
-            pushButton.classList.add('pressed');
+        
+        function updateAnsweredNumbers() {
+            answeredNumbersEl.innerHTML = '';
+            
+            gameState.answeredNumbers.forEach(number => {
+                const numEl = document.createElement('div');
+                numEl.className = 'answered-number';
+                numEl.textContent = number;
+                answeredNumbersEl.appendChild(numEl);
+            });
         }
-
-        function setButtonCorrect() {
-            pushButton.disabled = true;
-            pushButton.classList.remove(...pushButton.classList);
-            pushButton.classList.add('correct');
-        }
-
-        function setButtonIncorrect() {
-            pushButton.disabled = true;
-            pushButton.classList.remove(...pushButton.classList);
-            pushButton.classList.add('incorrect');
-        }
+        
+        // イベントリスナー
+        buzzerBtn.addEventListener('click', () => {
+            if (gameState.quizState === 'active' && !gameState.eliminated) {
+                socket.send(JSON.stringify({
+                    type: 'buzzer',
+                    team: gameState.team
+                }));
+                buzzerBtn.disabled = true;
+                gameStateDisplay.textContent = '解答を待っています...';
+            }
+        });
+        
+        submitNumber.addEventListener('click', () => {
+            const number = parseInt(numberInput.value);
+            
+            if (isNaN(number) || number < 1 || number > 75) {
+                alert('1から75までの数字を入力してください');
+                return;
+            }
+            
+            if (gameState.answeredNumbers.includes(number)) {
+                alert('その数字は既に選ばれています');
+                return;
+            }
+            
+            socket.send(JSON.stringify({
+                type: 'selectNumber',
+                team: gameState.team,
+                number: number
+            }));
+            
+            numberSelection.classList.add('hidden');
+        });
     </script>
 </body>
 </html>

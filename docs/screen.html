@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逆ビンゴ - 大画面表示</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .game-status {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #eef7ff;
+            border-radius: 8px;
+        }
+        .teams-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .team-board {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .team-header h2 {
+            font-size: 36px;
+            margin: 0;
+        }
+        .team-status {
+            font-size: 24px;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        .active {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .eliminated {
+            background-color: #e74c3c;
+            color: white;
+            opacity: 0.7;
+        }
+        .bingo-sheet {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+        .marked {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .team-A .marked {
+            background-color: #3498db;
+            border-color: #2980b9;
+        }
+        .team-B .marked {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+        }
+        .team-C .marked {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+        }
+        .team-D .marked {
+            background-color: #f39c12;
+            border-color: #d35400;
+        }
+        .answered-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .answered-number {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            font-size: 24px;
+        }
+        .current-question {
+            font-size: 28px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1200px;
+        }
+        .answering-team {
+            font-size: 32px;
+            text-align: center;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            max-width: 600px;
+        }
+        .team-name {
+            font-weight: bold;
+        }
+        .team-A-color { color: #3498db; }
+        .team-B-color { color: #e74c3c; }
+        .team-C-color { color: #2ecc71; }
+        .team-D-color { color: #f39c12; }
+        .winning-animation {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>逆ビンゴ大会</h1>
+    </div>
+    
+    <div class="game-status" id="game-state">準備中...</div>
+    
+    <div id="current-question" class="current-question" style="display: none;"></div>
+    
+    <div id="answering-team" class="answering-team" style="display: none;"></div>
+    
+    <div class="answered-numbers" id="answered-numbers"></div>
+    
+    <div class="teams-container" id="teams-container"></div>
+    
+    <script>
+        // WebSocket接続
+        const serverUrl = window.location.hostname === "localhost" 
+            ? `ws://${window.location.hostname}:3000` 
+            : `wss://${window.location.host}`;
+            
+        const socket = new WebSocket(serverUrl);
+        
+        // ゲーム状態
+        let gameState = {
+            teams: {},
+            quizState: 'waiting',
+            answeredNumbers: [],
+            currentQuestion: '',
+            currentAnsweringTeam: null
+        };
+        
+        // DOM要素
+        const gameStateEl = document.getElementById('game-state');
+        const currentQuestionEl = document.getElementById('current-question');
+        const answeringTeamEl = document.getElementById('answering-team');
+        const answeredNumbersEl = document.getElementById('answered-numbers');
+        const teamsContainerEl = document.getElementById('teams-container');
+        
+        // WebSocket接続処理
+        socket.onopen = () => {
+            console.log('Connected to server');
+            socket.send(JSON.stringify({
+                type: 'register',
+                clientType: 'screen'
+            }));
+        };
+        
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received:', data);
+            
+            switch (data.type) {
+                case 'init':
+                    gameState.teams = data.teams;
+                    gameState.quizState = data.quizState;
+                    gameState.answeredNumbers = data.answeredNumbers;
+                    updateUI();
+                    break;
+                    
+                case 'quizStarted':
+                    gameState.quizState = 'active';
+                    gameState.currentQuestion = data.question || '問題が出題されました';
+                    gameState.currentAnsweringTeam = null;
+                    updateGameState();
+                    updateCurrentQuestion();
+                    updateAnsweringTeam();
+                    break;
+                    
+                case 'answerResult':
+                    if (data.result === 'correct') {
+                        gameState.quizState = 'answered';
+                        gameState.currentAnsweringTeam = data.team;
+                        answeringTeamEl.innerHTML = `<span class="team-name team-${data.team}-color">チーム${data.team}</span> が正解！数字を選択中...`;
+                        answeringTeamEl.style.display = 'block';
+                    } else {
+                        answeringTeamEl.innerHTML = `<span class="team-name team-${data.team}-color">チーム${data.team}</span> は不正解...`;
+                        answeringTeamEl.style.display = 'block';
+                        setTimeout(() => {
+                            answeringTeamEl.style.display = 'none';
+                        }, 2000);
+                    }
+                    updateGameState();
+                    break;
+                    
+                case 'numberSelected':
+                    if (!gameState.answeredNumbers.includes(data.number)) {
+                        gameState.answeredNumbers.push(data.number);
+                    }
+                    answeringTeamEl.innerHTML = `<span class="team-name team-${data.team}-color">チーム${data.team}</span> が数字 ${data.number} を選びました！`;
+                    updateAnsweredNumbers();
+                    break;
+                    
+                case 'bingoOccurred':
+                    data.teams.forEach(teamId => {
+                        gameState.teams[teamId].eliminated = true;
+                    });
+                    
+                    const bingoTeams = data.teams.map(team => {
+                        return `<span class="team-name team-${team}-color">チーム${team}</span>`;
+                    }).join(' と ');
+                    
+                    answeringTeamEl.innerHTML = `${bingoTeams} がビンゴ！脱落です！`;
+                    answeringTeamEl.style.display = 'block';
+                    
+                    updateTeamsDisplay();
+                    break;
+                    
+                case 'waitingForNextQuestion':
+                    gameState.quizState = 'waiting';
+                    gameState.currentQuestion = '';
+                    currentQuestionEl.style.display = 'none';
+                    setTimeout(() => {
+                        answeringTeamEl.style.display = 'none';
+                    }, 3000);
+                    updateGameState();
+                    break;
+                    
+                case 'gameOver':
+                    gameState.quizState = 'over';
+                    answeringTeamEl.innerHTML = `<span class="team-name team-${data.winner}-color">チーム${data.winner}</span> の勝利！おめでとうございます！`;
+                    answeringTeamEl.style.display = 'block';
+                    answeringTeamEl.classList.add('winning-animation');
+                    
+                    const winningTeamBoard = document.querySelector(`.team-board[data-team="${data.winner}"]`);
+                    if (winningTeamBoard) {
+                        winningTeamBoard.classList.add('winning-animation');
+                    }
+                    
+                    gameStateEl.textContent = 'ゲーム終了！';
+                    break;
+                    
+                case 'gameReset':
+                    location.reload(); // 簡単にリセットするためにページをリロード
+                    break;
+            }
+        };
+        
+        socket.onerror = (error) => {
+            console.error('WebSocket Error:', error);
+        };
+        
+        socket.onclose = () => {
+            console.log('Disconnected from server');
+        };
+        
+        // UI更新関数
+        function updateUI() {
+            updateGameState();
+            updateCurrentQuestion();
+            updateAnsweringTeam();
+            updateAnsweredNumbers();
+            updateTeamsDisplay();
+        }
+        
+        function updateGameState() {
+            const stateText = {
+                'waiting': '次の問題を待っています...',
+                'active': '問題出題中',
+                'answered': '数字選択中',
+                'over': 'ゲーム終了'
+            };
+            gameStateEl.textContent = stateText[gameState.quizState];
+        }
+        
+        function updateCurrentQuestion() {
+            if (gameState.currentQuestion && gameState.quizState === 'active') {
+                currentQuestionEl.textContent = gameState.currentQuestion;
+                currentQuestionEl.style.display = 'block';
+            } else {
+                currentQuestionEl.style.display = 'none';
+            }
+        }
+        
+        function updateAnsweringTeam() {
+            if (gameState.currentAnsweringTeam) {
+                answeringTeamEl.innerHTML = `<span class="team-name team-${gameState.currentAnsweringTeam}-color">チーム${gameState.currentAnsweringTeam}</span> が解答中...`;
+                answeringTeamEl.style.display = 'block';
+            } else {
+                answeringTeamEl.style.display = 'none';
+            }
+        }
+        
+        function updateAnsweredNumbers() {
+            answeredNumbersEl.innerHTML = '';
+            
+            gameState.answeredNumbers.forEach(number => {
+                const numEl = document.createElement('div');
+                numEl.className = 'answered-number';
+                numEl.textContent = number;
+                answeredNumbersEl.appendChild(numEl);
+            });
+        }
+        
+        function updateTeamsDisplay() {
+            teamsContainerEl.innerHTML = '';
+            
+            Object.entries(gameState.teams).forEach(([teamId, team]) => {
+                const teamBoardEl = document.createElement('div');
+                teamBoardEl.className = `team-board team-${teamId}`;
+                teamBoardEl.setAttribute('data-team', teamId);
+                
+                if (team.eliminated) {
+                    teamBoardEl.style.opacity = '0.7';
+                }
+                
+                const teamHeaderEl = document.createElement('div');
+                teamHeaderEl.className = 'team-header';
+                
+                const teamTitleEl = document.createElement('h2');
+                teamTitleEl.textContent = `チーム${teamId}`;
+                teamTitleEl.className = `team-${teamId}-color`;
+                
+                const teamStatusEl = document.createElement('div');
+                teamStatusEl.className = `team-status ${team.eliminated ? 'eliminated' : 'active'}`;
+                teamStatusEl.textContent = team.eliminated ? '脱落' : '参加中';
+                
+                teamHeaderEl.appendChild(teamTitleEl);
+                teamHeaderEl.appendChild(teamStatusEl);
+                teamBoardEl.appendChild(teamHeaderEl);
+                
+                const bingoSheetEl = document.createElement('div');
+                bingoSheetEl.className = 'bingo-sheet';
+                
+                team.bingoSheet.forEach(row => {
+                    row.forEach(cell => {
+                        const cellEl = document.createElement('div');
+                        cellEl.className = `cell ${cell.marked ? 'marked' : ''}`;
+                        // 数字は表示せず、マークの状態だけ表示する
+                        cellEl.textContent = cell.marked ? '●' : '';
+                        bingoSheetEl.appendChild(cellEl);
+                    });
+                });
+                
+                teamBoardEl.appendChild(bingoSheetEl);
+                teamsContainerEl.appendChild(teamBoardEl);
+            });
+        }
+    </script>
+</body>
+</html>
