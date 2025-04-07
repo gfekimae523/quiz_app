@@ -171,8 +171,8 @@
     <script>
         // WebSocket接続
         const serverUrl = window.location.hostname === "localhost" 
-            ? `ws://${window.location.hostname}:3000` 
-            : `wss://${window.location.host}`;
+            ? `ws://localhost:3000` 
+            : `wss://quiz-app-8smm.onrender.com`;
             
         const socket = new WebSocket(serverUrl);
         
