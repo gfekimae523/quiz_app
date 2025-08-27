@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,7 @@
             height: 100vh;
             background: rgba(255, 255, 255, 0.95);
             padding: 10px 20px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
             z-index: 1000;
             display: flex;
@@ -51,7 +52,7 @@
             text-align: center;
             position: relative;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             min-height: 80px;
             display: flex;
             flex-direction: column;
@@ -77,7 +78,7 @@
 
         .player-score.current-player {
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            box-shadow: 0 8px 25px rgba(255,107,107,0.4);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
         }
 
         .player-score.current-player.rank-1 {
@@ -91,13 +92,19 @@
         }
 
         @keyframes scoreIncrease {
-            0% { transform: scale(1); }
-            50% { 
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
                 transform: scale(1.2);
                 background: linear-gradient(135deg, #2ed573, #1e90ff);
                 box-shadow: 0 0 30px rgba(46, 213, 115, 0.6);
             }
-            100% { transform: scale(1); }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .player-name {
@@ -149,7 +156,7 @@
             font-size: 48px;
             font-weight: bold;
             color: #2ed573;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             pointer-events: none;
             z-index: 2000;
             animation: scorePopup 2s ease-out forwards;
@@ -160,9 +167,11 @@
                 opacity: 1;
                 transform: translateY(0) scale(0.5);
             }
+
             20% {
                 transform: translateY(-50px) scale(1.2);
             }
+
             100% {
                 opacity: 0;
                 transform: translateY(-150px) scale(1);
@@ -188,7 +197,7 @@
             border: none;
             border-radius: 25px;
             background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             min-width: 200px;
         }
 
@@ -203,7 +212,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -215,7 +224,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transform: rotate(45deg);
             transition: all 0.6s;
             opacity: 0;
@@ -226,9 +235,19 @@
         }
 
         @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+                opacity: 0;
+            }
         }
 
         #pushButton.enabled {
@@ -244,7 +263,7 @@
         #pushButton.disabled {
             cursor: not-allowed;
             background: linear-gradient(135deg, #666, #444);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         #pushButton.pressed {
@@ -254,15 +273,17 @@
         }
 
         @keyframes pulseGreen {
-            0% { 
+            0% {
                 background: linear-gradient(135deg, #40FF40, #32cd32);
                 box-shadow: 0 0 0 0 rgba(64, 255, 64, 0.7);
             }
-            50% { 
+
+            50% {
                 background: linear-gradient(135deg, #A0FFA0, #90ee90);
                 box-shadow: 0 0 0 20px rgba(64, 255, 64, 0);
             }
-            100% { 
+
+            100% {
                 background: linear-gradient(135deg, #40FF40, #32cd32);
                 box-shadow: 0 0 0 0 rgba(64, 255, 64, 0.7);
             }
@@ -275,9 +296,19 @@
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
         }
 
         #pushButton.correct {
@@ -287,15 +318,17 @@
         }
 
         @keyframes pulseRed {
-            0% { 
+            0% {
                 background: linear-gradient(135deg, #FF4040, #dc3545);
                 box-shadow: 0 0 0 0 rgba(255, 64, 64, 0.7);
             }
-            50% { 
+
+            50% {
                 background: linear-gradient(135deg, #FF8080, #ff6b6b);
                 box-shadow: 0 0 0 20px rgba(255, 64, 64, 0);
             }
-            100% { 
+
+            100% {
                 background: linear-gradient(135deg, #FF4040, #dc3545);
                 box-shadow: 0 0 0 0 rgba(255, 64, 64, 0.7);
             }
@@ -310,7 +343,7 @@
             font-size: 20px;
             font-weight: bold;
             color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 15px 25px;
@@ -325,7 +358,7 @@
             body {
                 flex-direction: column;
             }
-            
+
             #scoreboard {
                 width: 100%;
                 height: 200px;
@@ -365,6 +398,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- スコアボード -->
     <div id="scoreboard">
@@ -384,7 +418,7 @@
         </select>
 
         <button id="pushButton" class="enabled">PUSH</button>
-        
+
         <div id="messageArea"></div>
     </div>
 
@@ -421,47 +455,96 @@
         // スコア表示更新（順位付きソート）
         function updateScoreDisplay(player, score) {
             playerScores[player] = score;
-            
+
             // スコア順にソート（降順）
             const sortedPlayers = Object.entries(playerScores)
-                .sort((a, b) => b[1] - a[1])
-                .map(([name, score], index) => ({ name, score, rank: index + 1 }));
+                .sort((a, b) => b[1] - a[1]);
+
+            let lastScore = null;
+            let lastRank = 0;
+            let sameCount = 0;
+
+            const rankedPlayers = sortedPlayers.map(([name, score], index) => {
+                if (score === lastScore) {
+                    sameCount++;
+                } else {
+                    lastRank = index + 1;
+                    sameCount = 1;
+                }
+                lastScore = score;
+
+                return { name, score, rank: lastRank };
+            });
 
             // スコアグリッドをクリア
             scoreGrid.innerHTML = '';
 
-            // ソート順で表示
-            sortedPlayers.forEach(({ name, score, rank }) => {
+            // 表示
+            rankedPlayers.forEach(({ name, score, rank }) => {
                 const playerElement = document.createElement('div');
                 playerElement.id = `score-${name}`;
                 playerElement.className = 'player-score';
-                
-                // ランクに応じたクラス追加
+
                 if (rank === 1) playerElement.classList.add('rank-1');
                 else if (rank === 2) playerElement.classList.add('rank-2');
                 else if (rank === 3) playerElement.classList.add('rank-3');
 
-                // 現在のプレイヤーをハイライト
                 if (name === playerName) {
                     playerElement.classList.add('current-player');
                 }
 
                 playerElement.innerHTML = `
-                    <div class="rank-indicator rank-${rank}">${rank}</div>
-                    <div class="player-name">${name}</div>
-                    <div class="player-points">${score}</div>
-                `;
+            <div class="rank-indicator rank-${rank}">${rank}</div>
+            <div class="player-name">${name}</div>
+            <div class="player-points">${score}</div>
+        `;
 
                 scoreGrid.appendChild(playerElement);
             });
         }
+        // function updateScoreDisplay(player, score) {
+        //     playerScores[player] = score;
+
+        //     // スコア順にソート（降順）
+        //     const sortedPlayers = Object.entries(playerScores)
+        //         .sort((a, b) => b[1] - a[1])
+        //         .map(([name, score], index) => ({ name, score, rank: index + 1 }));
+
+        //     // スコアグリッドをクリア
+        //     scoreGrid.innerHTML = '';
+
+        //     // ソート順で表示
+        //     sortedPlayers.forEach(({ name, score, rank }) => {
+        //         const playerElement = document.createElement('div');
+        //         playerElement.id = `score-${name}`;
+        //         playerElement.className = 'player-score';
+
+        //         // ランクに応じたクラス追加
+        //         if (rank === 1) playerElement.classList.add('rank-1');
+        //         else if (rank === 2) playerElement.classList.add('rank-2');
+        //         else if (rank === 3) playerElement.classList.add('rank-3');
+
+        //         // 現在のプレイヤーをハイライト
+        //         if (name === playerName) {
+        //             playerElement.classList.add('current-player');
+        //         }
+
+        //         playerElement.innerHTML = `
+        //             <div class="rank-indicator rank-${rank}">${rank}</div>
+        //             <div class="player-name">${name}</div>
+        //             <div class="player-points">${score}</div>
+        //         `;
+
+        //         scoreGrid.appendChild(playerElement);
+        //     });
+        // }
 
         // 得点アニメーション表示
         function showScoreAnimation(player, points) {
             const popup = document.createElement('div');
             popup.className = 'score-popup';
             popup.textContent = `+${points}`;
-            
+
             // プレイヤーのスコアボード要素の位置を取得
             const playerElement = document.getElementById(`score-${player}`);
             if (playerElement) {
@@ -519,13 +602,13 @@
 
         // サーバーからのメッセージ処理
         function handleServerMessage(data) {
-            switch(data.type) {
+            switch (data.type) {
                 case 'quizStart':
                     enablePushButton();
                     nextSound.play();
                     messageArea.textContent = '問題開始！早押しボタンを押してください';
                     break;
-                    
+
                 case 'buttonPressed':
                     if (data.player === playerName) {
                         pressPushButton();
@@ -538,7 +621,7 @@
                         messageArea.textContent = data.player + 'が押しました';
                     }
                     break;
-                    
+
                 case 'correct':
                     if (data.player === playerName) {
                         setButtonCorrect();
@@ -547,14 +630,14 @@
                     } else {
                         messageArea.textContent = data.player + 'が正解しました';
                     }
-                    
+
                     // スコア更新（正解で1点追加）
                     const newScore = playerScores[data.player] + 1;
                     updateScoreDisplay(data.player, newScore);
-                    
+
                     // 得点アニメーション
                     showScoreAnimation(data.player, 1);
-                    
+
                     // スコアボードのプレイヤー要素にアニメーション追加
                     const playerElement = document.getElementById(`score-${data.player}`);
                     if (playerElement) {
@@ -564,7 +647,7 @@
                         }, 1000);
                     }
                     break;
-                    
+
                 case 'incorrect':
                     if (data.player === playerName) {
                         setButtonIncorrect();
@@ -574,7 +657,7 @@
                         messageArea.textContent = data.player + 'が不正解';
                     }
                     break;
-                    
+
                 case 'reset':
                     if (!data.disabledPlayers.includes(playerName)) {
                         enablePushButton();
@@ -660,4 +743,5 @@
         initializeScoreboard();
     </script>
 </body>
+
 </html>
