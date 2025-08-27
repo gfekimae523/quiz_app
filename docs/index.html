@@ -8,99 +8,492 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        /* スコアボード */
+        #scoreboard {
+            width: 300px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #4a5568;
+        }
+
+        .score-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .player-score {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .player-score.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #333;
+            transform: scale(1.05);
+            border: 3px solid #ff6b6b;
+        }
+
+        .player-score.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            border: 2px solid #667eea;
+        }
+
+        .player-score.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #b8860b);
+            border: 1px solid #764ba2;
+        }
+
+        .player-score.current-player {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 8px 25px rgba(255,107,107,0.4);
+        }
+
+        .player-score.current-player.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #333;
+            border: 3px solid #ff6b6b;
+        }
+
+        .player-score.answered-correctly {
+            animation: scoreIncrease 1s ease-in-out;
+        }
+
+        @keyframes scoreIncrease {
+            0% { transform: scale(1); }
+            50% { 
+                transform: scale(1.2);
+                background: linear-gradient(135deg, #2ed573, #1e90ff);
+                box-shadow: 0 0 30px rgba(46, 213, 115, 0.6);
+            }
+            100% { transform: scale(1); }
+        }
+
+        .player-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-points {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .rank-indicator {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .rank-indicator.rank-1 {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .rank-indicator.rank-2 {
+            background: #c0c0c0;
+            color: #333;
+        }
+
+        .rank-indicator.rank-3 {
+            background: #cd7f32;
+            color: white;
+        }
+
+        /* 得点アニメーション */
+        .score-popup {
+            position: fixed;
+            font-size: 48px;
+            font-weight: bold;
+            color: #2ed573;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 2000;
+            animation: scorePopup 2s ease-out forwards;
+        }
+
+        @keyframes scorePopup {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.5);
+            }
+            20% {
+                transform: translateY(-50px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-150px) scale(1);
+            }
+        }
+
+        /* メイン要素 */
+        .main-content {
+            flex: 1;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 40px;
             height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            box-sizing: border-box;
         }
+
         #playerSelect {
-            margin-top: 0;
-            margin-bottom: 30px;
-            margin-left: auto;
-            margin-right: 20px;
-            font-size: 18px;
+            margin-bottom: 40px;
+            font-size: 20px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-width: 200px;
         }
+
         #pushButton {
-            width: 400px;
-            height: 400px;
+            width: 350px;
+            height: 350px;
             border-radius: 50%;
-            background-color: #a0a0a0;
+            background: linear-gradient(135deg, #a0a0a0, #808080);
             color: white;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
         }
+
+        #pushButton::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        #pushButton:hover::before {
+            animation: shine 0.6s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
         #pushButton.enabled {
-            background-color: #a0a0a0;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
         }
+
+        #pushButton.enabled:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(76, 175, 80, 0.5);
+        }
+
         #pushButton.disabled {
             cursor: not-allowed;
-            background-color: #303030;
+            background: linear-gradient(135deg, #666, #444);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
+
         #pushButton.pressed {
             cursor: not-allowed;
             animation: pulseGreen 1s infinite;
+            transform: scale(0.95);
         }
+
         @keyframes pulseGreen {
-            0% { background-color: #40FF40; }
-            50% { background-color: #A0FFA0; }
-            100% { background-color: #40FF40; }
+            0% { 
+                background: linear-gradient(135deg, #40FF40, #32cd32);
+                box-shadow: 0 0 0 0 rgba(64, 255, 64, 0.7);
+            }
+            50% { 
+                background: linear-gradient(135deg, #A0FFA0, #90ee90);
+                box-shadow: 0 0 0 20px rgba(64, 255, 64, 0);
+            }
+            100% { 
+                background: linear-gradient(135deg, #40FF40, #32cd32);
+                box-shadow: 0 0 0 0 rgba(64, 255, 64, 0.7);
+            }
         }
+
         #pushButton.incorrect {
             cursor: not-allowed;
-            background-color: #8080FF;
+            background: linear-gradient(135deg, #8080FF, #6060cc);
+            animation: shake 0.5s ease-in-out;
         }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
         #pushButton.correct {
             cursor: not-allowed;
             animation: pulseRed 1s infinite;
+            transform: scale(1.1);
         }
+
         @keyframes pulseRed {
-            0% { background-color: #FF4040; }
-            50% { background-color: #FF8080; }
-            100% { background-color: #FF4040; }
+            0% { 
+                background: linear-gradient(135deg, #FF4040, #dc3545);
+                box-shadow: 0 0 0 0 rgba(255, 64, 64, 0.7);
+            }
+            50% { 
+                background: linear-gradient(135deg, #FF8080, #ff6b6b);
+                box-shadow: 0 0 0 20px rgba(255, 64, 64, 0);
+            }
+            100% { 
+                background: linear-gradient(135deg, #FF4040, #dc3545);
+                box-shadow: 0 0 0 0 rgba(255, 64, 64, 0.7);
+            }
         }
+
         #messageArea {
-            margin-top: 60px;
+            margin-top: 40px;
             text-align: center;
             width: 100%;
-            height: 20px;
-            font-size: 14px;
+            max-width: 500px;
+            min-height: 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 15px 25px;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            #scoreboard {
+                width: 100%;
+                height: 200px;
+                flex-direction: row;
+                padding: 15px;
+                overflow-x: auto;
+            }
+
+            .score-grid {
+                flex-direction: row;
+                min-width: max-content;
+            }
+
+            .player-score {
+                min-width: 120px;
+                padding: 15px;
+            }
+
+            .main-content {
+                flex: 1;
+                padding: 20px;
+            }
+
+            #pushButton {
+                width: 250px;
+                height: 250px;
+                font-size: 22px;
+            }
+
+            .player-points {
+                font-size: 28px;
+            }
+
+            .player-name {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <select id="playerSelect">
-        <option value="">チームを選択</option>
-        <option value="足立">足立</option>
-        <option value="加藤">加藤</option>
-        <option value="坂井">坂井</option>
-        <option value="坂下">坂下</option>
-    </select>
+    <!-- スコアボード -->
+    <div id="scoreboard">
+        <div class="score-title">🏆 得点状況 🏆</div>
+        <div id="scoreGrid" class="score-grid">
+            <!-- プレイヤースコアがここに動的に追加される -->
+        </div>
+    </div>
 
-    <button id="pushButton" class="enabled">PUSH</button>
-    
-    <div id="messageArea"></div>
+    <div class="main-content">
+        <select id="playerSelect">
+            <option value="">チームを選択</option>
+            <option value="足立">足立</option>
+            <option value="加藤">加藤</option>
+            <option value="坂井">坂井</option>
+            <option value="坂下">坂下</option>
+        </select>
+
+        <button id="pushButton" class="enabled">PUSH</button>
+        
+        <div id="messageArea"></div>
+    </div>
 
     <script>
-        const serverUrl = 'https://quiz-app-8smm.onrender.com'; // RenderサーバーのURLを入力
+        const serverUrl = 'https://quiz-app-8smm.onrender.com';
         let socket;
         let playerName = '';
         const pushButton = document.getElementById('pushButton');
         const playerSelect = document.getElementById('playerSelect');
         const messageArea = document.getElementById('messageArea');
+        const scoreGrid = document.getElementById('scoreGrid');
+
+        // 音声ファイル
         const pushSound = new Audio('push.mp3');
         const nextSound = new Audio('next.mp3');
         const correctSound = new Audio('correct.mp3');
         const incorrectSound = new Audio('incorrect.mp3');
+
+        // プレイヤースコア管理
+        const playerScores = {
+            '足立': 0,
+            '加藤': 0,
+            '坂井': 0,
+            '坂下': 0
+        };
+
+        // 初期スコアボード表示
+        function initializeScoreboard() {
+            Object.keys(playerScores).forEach(player => {
+                updateScoreDisplay(player, 0);
+            });
+        }
+
+        // スコア表示更新（順位付きソート）
+        function updateScoreDisplay(player, score) {
+            playerScores[player] = score;
+            
+            // スコア順にソート（降順）
+            const sortedPlayers = Object.entries(playerScores)
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, score], index) => ({ name, score, rank: index + 1 }));
+
+            // スコアグリッドをクリア
+            scoreGrid.innerHTML = '';
+
+            // ソート順で表示
+            sortedPlayers.forEach(({ name, score, rank }) => {
+                const playerElement = document.createElement('div');
+                playerElement.id = `score-${name}`;
+                playerElement.className = 'player-score';
+                
+                // ランクに応じたクラス追加
+                if (rank === 1) playerElement.classList.add('rank-1');
+                else if (rank === 2) playerElement.classList.add('rank-2');
+                else if (rank === 3) playerElement.classList.add('rank-3');
+
+                // 現在のプレイヤーをハイライト
+                if (name === playerName) {
+                    playerElement.classList.add('current-player');
+                }
+
+                playerElement.innerHTML = `
+                    <div class="rank-indicator rank-${rank}">${rank}</div>
+                    <div class="player-name">${name}</div>
+                    <div class="player-points">${score}</div>
+                `;
+
+                scoreGrid.appendChild(playerElement);
+            });
+        }
+
+        // 得点アニメーション表示
+        function showScoreAnimation(player, points) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = `+${points}`;
+            
+            // プレイヤーのスコアボード要素の位置を取得
+            const playerElement = document.getElementById(`score-${player}`);
+            if (playerElement) {
+                const rect = playerElement.getBoundingClientRect();
+                popup.style.left = `${rect.left + rect.width / 2 - 25}px`;
+                popup.style.top = `${rect.top + rect.height / 2}px`;
+            } else {
+                // フォールバック位置
+                popup.style.left = '50%';
+                popup.style.top = '50%';
+                popup.style.transform = 'translateX(-50%)';
+            }
+
+            document.body.appendChild(popup);
+
+            // アニメーション後に要素を削除
+            setTimeout(() => {
+                if (document.body.contains(popup)) {
+                    document.body.removeChild(popup);
+                }
+            }, 2000);
+        }
 
         // プレイヤー選択イベント
         playerSelect.addEventListener('change', (e) => {
             playerName = e.target.value;
             if (playerName) {
                 connectWebSocket();
+                // 全プレイヤーのスコア表示を更新
+                Object.keys(playerScores).forEach(player => {
+                    updateScoreDisplay(player, playerScores[player]);
+                });
             }
         });
 
@@ -130,8 +523,9 @@
                 case 'quizStart':
                     enablePushButton();
                     nextSound.play();
-                    messageArea.textContent = '';
+                    messageArea.textContent = '問題開始！早押しボタンを押してください';
                     break;
+                    
                 case 'buttonPressed':
                     if (data.player === playerName) {
                         pressPushButton();
@@ -144,6 +538,7 @@
                         messageArea.textContent = data.player + 'が押しました';
                     }
                     break;
+                    
                 case 'correct':
                     if (data.player === playerName) {
                         setButtonCorrect();
@@ -152,20 +547,49 @@
                     } else {
                         messageArea.textContent = data.player + 'が正解しました';
                     }
+                    
+                    // スコア更新（正解で1点追加）
+                    const newScore = playerScores[data.player] + 1;
+                    updateScoreDisplay(data.player, newScore);
+                    
+                    // 得点アニメーション
+                    showScoreAnimation(data.player, 1);
+                    
+                    // スコアボードのプレイヤー要素にアニメーション追加
+                    const playerElement = document.getElementById(`score-${data.player}`);
+                    if (playerElement) {
+                        playerElement.classList.add('answered-correctly');
+                        setTimeout(() => {
+                            playerElement.classList.remove('answered-correctly');
+                        }, 1000);
+                    }
                     break;
+                    
                 case 'incorrect':
                     if (data.player === playerName) {
                         setButtonIncorrect();
                         incorrectSound.play();
                         messageArea.textContent = '不正解...';
                     } else {
-                        messageArea.textContent = '';
+                        messageArea.textContent = data.player + 'が不正解';
                     }
                     break;
+                    
                 case 'reset':
                     if (!data.disabledPlayers.includes(playerName)) {
                         enablePushButton();
-                        messageArea.textContent = '';
+                        messageArea.textContent = '他の人もチャレンジできます';
+                    } else {
+                        messageArea.textContent = 'この問題はもう回答できません';
+                    }
+                    break;
+
+                case 'scoreUpdate':
+                    // サーバーからスコア情報が送られてきた場合の処理
+                    if (data.scores) {
+                        Object.keys(data.scores).forEach(player => {
+                            updateScoreDisplay(player, data.scores[player]);
+                        });
                     }
                     break;
             }
@@ -198,18 +622,16 @@
                     type: 'buttonPress',
                     player: playerName
                 }));
-                
             }
         }
 
-        // ボタン有効化
+        // ボタン状態制御関数
         function enablePushButton() {
             pushButton.disabled = false;
             pushButton.classList.remove(...pushButton.classList);
             pushButton.classList.add('enabled');
         }
 
-        // ボタン無効化
         function disablePushButton() {
             pushButton.disabled = true;
             pushButton.classList.remove(...pushButton.classList);
@@ -233,6 +655,9 @@
             pushButton.classList.remove(...pushButton.classList);
             pushButton.classList.add('incorrect');
         }
+
+        // 初期化
+        initializeScoreboard();
     </script>
 </body>
 </html>
